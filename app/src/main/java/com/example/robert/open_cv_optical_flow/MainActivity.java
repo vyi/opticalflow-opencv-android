@@ -4,7 +4,7 @@ import android.media.MediaScannerConnection;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
-import android.support.v7.app.AppCompatActivity;
+import androidx.appcompat.app.AppCompatActivity;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -37,7 +37,6 @@ import java.util.*;
 public class MainActivity extends AppCompatActivity implements CameraBridgeViewBase.CvCameraViewListener2 {
 
     private static final String TAG = "CameraActivity";
-
     private boolean dense = true;
 
     private Mat mRgba;
@@ -97,6 +96,7 @@ public class MainActivity extends AppCompatActivity implements CameraBridgeViewB
 
         mOpenCvCameraView = findViewById(R.id.main_activity_surface_view);
         mOpenCvCameraView.setCvCameraViewListener(this);
+        mLoaderCallback.onManagerConnected(LoaderCallbackInterface.SUCCESS);
         mOpenCvCameraView.setMaxFrameSize(240, 144);
 
     }
@@ -181,7 +181,16 @@ public class MainActivity extends AppCompatActivity implements CameraBridgeViewB
     @Override
     protected void onResume() {
         super.onResume();
-        OpenCVLoader.initAsync(OpenCVLoader.OPENCV_VERSION_3_0_0, this, mLoaderCallback);
+        //mLoaderCallback.onManagerConnected(LoaderCallbackInterface.SUCCESS);
+        //OpenCVLoader.initAsync(OpenCVLoader.OPENCV_VERSION_3_0_0, this, mLoaderCallback);
+        if (!OpenCVLoader.initDebug()) {
+            Log.d("OpenCV", "Internal OpenCV library not found. Using OpenCV Manager for initialization");
+            OpenCVLoader.initAsync(OpenCVLoader.OPENCV_VERSION_3_0_0, this, mLoaderCallback);
+        } else {
+            Log.d("OpenCV", "OpenCV library found inside package. Using it!");
+            mLoaderCallback.onManagerConnected(LoaderCallbackInterface.SUCCESS);
+        }
+
     }
 
     @Override
@@ -202,19 +211,20 @@ public class MainActivity extends AppCompatActivity implements CameraBridgeViewB
         @Override
         public void onManagerConnected(int status) {
             switch (status) {
-                case LoaderCallbackInterface.SUCCESS: {
+                case LoaderCallbackInterface.SUCCESS:
+                {
                     Log.i(TAG, "OpenCV loaded successfully");
 
                     mOpenCvCameraView.enableView();
-                }
-                break;
-                default: {
+                } break;
+                default:
+                {
                     super.onManagerConnected(status);
-                }
-                break;
+                } break;
             }
         }
     };
+
 
     // Camera Code
 
